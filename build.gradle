@@ -1,0 +1,56 @@
+plugins {
+    id "application"
+    id 'java-library'
+    id "java"
+}
+
+// apply plugin : "java" // replaced with id "java"
+
+// declare java main class (treat this as variable declaration)
+ext {
+    javaMainClass = "Main"
+}
+
+//declare property mainClassName for plugin application
+application {
+    mainClassName = javaMainClass
+}
+
+// company name
+group 'org.example'
+
+// modify every time we deploy
+version '1.0-SNAPSHOT'
+
+// where the dependencies are download
+repositories {
+    mavenCentral()
+}
+
+// similar to package.json
+// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind/2.12.0
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.0'
+    compile group: 'org.apache.kafka', name: 'kafka-clients', version: '2.6.0'
+
+
+}
+
+
+// declare jar property for java-library plugin
+// enable crating jar
+// indicate how to create manifest.ms in jar
+// from: to copy all libraries into file jar (to create fat jar, so that we don't have to download jar files for libries after deployed)
+jar {
+    manifest {
+        attributes(
+                'Class-Path': configurations.compile.collect {it.getName()}.join(' '),
+                'Main-Class': 'Main' // can also use javaMainClass instead  of 'Main'
+        )
+    }
+    from {
+        configurations.runtimeClasspath.collect {it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
